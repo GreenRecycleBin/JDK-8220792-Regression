@@ -1,0 +1,23 @@
+# HG changeset patch
+# User Daniel Le <greenrecyclebin@gmail.com>
+# Date 1573010329 0
+#      Wed Nov 06 03:18:49 2019 +0000
+# Node ID ff3461f9d69462f3e4bf1292f469ffb2d304b0ee
+# Parent  9c250a7600e12bdb1e611835250af3204d4aa152
+Clear JavacFileManager cache instance variables
+
+This mitigates two issues:
+1. Holding on to JavacFileManager$ArchiveContainer that are already closed: a java.nio.file.ClosedFileSystemException is thrown when any of of these closed ArchiveContainer.list() is called again.
+2. Increased memory usage for compilation/documentation tasks: https://github.com/gradle/gradle/issues/11097.
+
+diff -r 9c250a7600e1 -r ff3461f9d694 src/jdk.compiler/share/classes/com/sun/tools/javac/file/JavacFileManager.java
+--- a/src/jdk.compiler/share/classes/com/sun/tools/javac/file/JavacFileManager.java	Thu Aug 08 05:05:04 2019 +0000
++++ b/src/jdk.compiler/share/classes/com/sun/tools/javac/file/JavacFileManager.java	Wed Nov 06 03:18:49 2019 +0000
+@@ -733,6 +733,8 @@
+             container.close();
+         }
+         containers.clear();
++        pathsAndContainersByLocationAndRelativeDirectory.clear();
++        nonIndexingContainersByLocation.clear();
+         contentCache.clear();
+     }
